@@ -1,7 +1,12 @@
 {
 	"name": "@rs-safe/result",
-	"version": "1.0.3",
+	"version": "1.0.5",
+	"description": "A minimal port of Rust Result type in Typescript",
+	"author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
+	"keywords": ["rust", "errors", "typesafe"],
+	"license": "MIT",
 	"main": "dist/index.js",
+	"module": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"files": ["dist"],
 	"scripts": {
@@ -9,10 +14,10 @@
 		"build": "tsc",
 		"prepublishOnly": "npm run build"
 	},
-	"keywords": [],
-	"author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
-	"license": "MIT",
-	"description": "A minimal port of Rust Result type in Typescript",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/oljimenez/result"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"typescript": "^5.8.3"
