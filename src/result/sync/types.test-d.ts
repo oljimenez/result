@@ -1,23 +1,53 @@
 import { expectTypeOf, test } from "vitest";
-import type { InferOkTypes } from "./types";
+import type { InferErrTypes, InferOkTypes } from "./types";
 import type { Result } from "./result.builder";
 
-test("InferOkTypes should infer the Ok primitive values", () => {
-	type ResultExample = InferOkTypes<Result<number, boolean>>;
+//############################################################
+//##################### InferOkTypes #########################
+//############################################################
 
-	expectTypeOf<ResultExample>().toEqualTypeOf<number>();
+test("InferOkTypes should infer the Ok primitive values", () => {
+	type ResultOk = number;
+	type ResultExample = InferOkTypes<Result<ResultOk, never>>;
+
+	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
 
 test("InferOkTypes should infer Ok object values", () => {
 	type ResultOk = { name: string };
-	type ResultExample = InferOkTypes<Result<ResultOk, boolean>>;
+	type ResultExample = InferOkTypes<Result<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
 
-test("InferOkTypes should fail if wrong value is entered", () => {
+test("InferOkTypes should infer Ok array values", () => {
 	type ResultOk = { name: string }[];
-	type ResultExample = InferOkTypes<Result<ResultOk, boolean>>;
+	type ResultExample = InferOkTypes<Result<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
+});
+
+//############################################################
+//##################### InferErrTypes #########################
+//############################################################
+
+test("InferErrTypes should infer the Err primitive values", () => {
+	type ResultErr = number;
+	type ResultExample = InferErrTypes<Result<never, ResultErr>>;
+
+	expectTypeOf<ResultExample>().toEqualTypeOf<ResultErr>();
+});
+
+test("InferOkTypes should infer Err object values", () => {
+	type ResultErr = { name: string };
+	type ResultExample = InferErrTypes<Result<never, ResultErr>>;
+
+	expectTypeOf<ResultExample>().toEqualTypeOf<ResultErr>();
+});
+
+test("InferErrTypes should fail if wrong value is entered", () => {
+	type ResultErr = { name: string }[];
+	type ResultExample = InferErrTypes<Result<never, ResultErr>>;
+
+	expectTypeOf<ResultExample>().toEqualTypeOf<ResultErr>();
 });
