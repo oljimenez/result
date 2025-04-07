@@ -14,14 +14,14 @@ test("InferOkTypes should infer the Ok primitive values", () => {
 });
 
 test("InferOkTypes should infer Ok object values", () => {
-	type ResultOk = { name: string };
+	type ResultOk = { name: number };
 	type ResultExample = InferOkTypes<Result<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
 
 test("InferOkTypes should infer Ok array values", () => {
-	type ResultOk = { name: string }[];
+	type ResultOk = { name: number }[];
 	type ResultExample = InferOkTypes<Result<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
@@ -39,14 +39,14 @@ test("InferErrTypes should infer the Err primitive values", () => {
 });
 
 test("InferOkTypes should infer Err object values", () => {
-	type ResultErr = { name: string };
+	type ResultErr = { name: number };
 	type ResultExample = InferErrTypes<Result<never, ResultErr>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultErr>();
 });
 
 test("InferErrTypes should fail if wrong value is entered", () => {
-	type ResultErr = { name: string }[];
+	type ResultErr = { name: number }[];
 	type ResultExample = InferErrTypes<Result<never, ResultErr>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultErr>();
