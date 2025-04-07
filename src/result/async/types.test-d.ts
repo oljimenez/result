@@ -7,21 +7,22 @@ import type { ResultAsync } from "./result-async.builder";
 //############################################################
 
 test("InferAsyncOkTypes should infer the Ok primitive values", () => {
-	type ResultExample = InferAsyncOkTypes<ResultAsync<number, boolean>>;
+	type ResultOk = number;
+	type ResultExample = InferAsyncOkTypes<ResultAsync<number, never>>;
 
-	expectTypeOf<ResultExample>().toEqualTypeOf<number>();
+	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
 
 test("InferAsyncOkTypes should infer Ok object values", () => {
-	type ResultOk = { name: string };
-	type ResultExample = InferAsyncOkTypes<ResultAsync<ResultOk, boolean>>;
+	type ResultOk = { name: number };
+	type ResultExample = InferAsyncOkTypes<ResultAsync<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
 
 test("InferAsyncOkTypes should fail if wrong value is entered", () => {
-	type ResultOk = { name: string }[];
-	type ResultExample = InferAsyncOkTypes<ResultAsync<ResultOk, boolean>>;
+	type ResultOk = { name: number }[];
+	type ResultExample = InferAsyncOkTypes<ResultAsync<ResultOk, never>>;
 
 	expectTypeOf<ResultExample>().toEqualTypeOf<ResultOk>();
 });
