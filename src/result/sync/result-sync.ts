@@ -75,10 +75,22 @@ export class Result<O, E> {
         return this.ok as O;
     }
 
+    /**
+     * @description
+     * Checks if the result is successful.
+     *
+     * @returns True if the result is successful, false otherwise.
+     */
     public isOk(): boolean {
         return this.status === ResultStatus.OK;
     }
 
+    /**
+     * @description
+     * Checks if the result is an error.
+     *
+     * @returns True if the result is an error, false otherwise.
+     */
     public isErr(): boolean {
         return this.status === ResultStatus.ERR;
     }

@@ -3,17 +3,20 @@ import { ResultStatus } from "../enums";
 import { Empty, Result, errSync, inferSync, okSync, safeTrySync } from "./result-sync";
 
 //############################################################
-//##################### Result ##############################
+//##################### Result ###############################
 //############################################################
 
 describe("Result", () => {
     it("constructor should properly set status, value and error", () => {
         const okResult = new Result(ResultStatus.OK, "value", Empty);
-        const errResult = new Result(ResultStatus.ERR, Empty, "error");
 
+        expect(okResult).instanceOf(Result);
         expect(okResult.isOk()).toBe(true);
         expect(okResult.unwrap()).toBe("value");
 
+        const errResult = new Result(ResultStatus.ERR, Empty, "error");
+
+        expect(errResult).instanceOf(Result);
         expect(errResult.isErr()).toBe(true);
         expect(() => errResult.unwrap()).toThrow("error");
     });

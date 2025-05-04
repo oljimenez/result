@@ -10,7 +10,7 @@ import type { InferAsyncErrTypes, InferAsyncOkTypes } from "./types";
  * @template O - The type of the Ok value.
  * @template E - The type of the Err value.
  */
-class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
+export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
     /**
      * @param _promise - A promise that resolves to a Result.
      */
@@ -29,11 +29,31 @@ class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @returns A Promise for the completion of which ever callback is executed.
      */
     // biome-ignore lint/suspicious/noThenProperty: then need to be implemented on PromiseLike instances
-    then<ResultOk, ResultErr>(
+    public then<ResultOk, ResultErr>(
         okFn?: (response: Result<O, E>) => ResultOk | PromiseLike<ResultOk>,
         errFn?: (reason: unknown) => ResultErr | PromiseLike<ResultErr>,
     ): PromiseLike<ResultOk | ResultErr> {
         return this._promise.then(okFn, errFn);
+    }
+
+    /**
+     * @description
+     * Checks if the result is successful.
+     *
+     * @returns True if the result is successful, false otherwise.
+     */
+    public async isOk(): Promise<boolean> {
+        return this._promise.then((res) => res.isOk());
+    }
+
+    /**
+     * @description
+     * Checks if the result is an error.
+     *
+     * @returns True if the result is an error, false otherwise.
+     */
+    public async isErr(): Promise<boolean> {
+        return this._promise.then((res) => res.isErr());
     }
 
     /**
@@ -284,4 +304,3 @@ export const ok = ResultAsync.ok;
 export const err = ResultAsync.err;
 export const safeTry = ResultAsync.safeTry;
 export const infer = ResultAsync.infer;
-export type { ResultAsync };
