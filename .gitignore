@@ -2,3 +2,5 @@ node_modules
 dist
 tsconfig.vitest-temp.json
 .vscode
+.zed
+coverage
