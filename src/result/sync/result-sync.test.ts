@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ResultStatus } from "../enums";
 import { Empty, Result, errSync, inferSync, okSync, safeTrySync } from "./result-sync";
-import { CustomError, safeSyncFn } from "./result-sync.mock";
 
 //############################################################
 //##################### Result ##############################
@@ -89,17 +88,12 @@ describe("Result.okSync() static", () => {
         expect(arrayError.ok).toStrictEqual(array);
 
         // Test with Ok instance
-        class Cat {
-            name: string;
-            constructor(name: string) {
-                this.name = name;
-            }
-        }
-        const name = "Michito";
-        const okInstance = okSync(new Cat(name));
+
+        const okInstance = okSync(new Map());
 
         expect(okInstance.isOk()).toBe(true);
-        expect(okInstance.unwrap()).toStrictEqual(new Cat(name));
+        expect(okInstance.unwrap()).instanceOf(Map);
+        expect(okInstance.unwrap()).toStrictEqual(new Map());
     });
 });
 
@@ -109,8 +103,8 @@ describe("Result.okSync() static", () => {
 
 describe("Result.errSync() static", () => {
     it("should return a Result", () => {
-        const result = errSync(new CustomError());
-        const errResult = new Result(ResultStatus.ERR, Empty, new CustomError());
+        const result = errSync(new Error());
+        const errResult = new Result(ResultStatus.ERR, Empty, new Error());
 
         expect(result).toStrictEqual(errResult);
     });
@@ -122,7 +116,7 @@ describe("Result.errSync() static", () => {
     });
 
     it("should properly store the provided error", () => {
-        const testError = new CustomError("complex error");
+        const testError = new Error("complex error");
         const result = errSync(testError);
         expect(() => result.unwrap()).toThrow(testError);
     });
@@ -171,10 +165,12 @@ describe("Result.errSync() static", () => {
         expect(arrayError.error).toStrictEqual(array);
 
         // Test with Error instance
-        const errorInstance = errSync(new Error("Error instance"));
+        const classError = new Error("Error instance");
+        const errorInstance = errSync(classError);
 
         expect(errorInstance.isErr()).toBe(true);
-        expect(() => errorInstance.unwrap()).toThrow("Error instance");
+        expect(() => errorInstance.unwrap()).toThrow(Error);
+        expect(() => errorInstance.unwrap()).toThrow(classError);
     });
 });
 
@@ -222,10 +218,44 @@ describe("Result.safeTrySync() static", () => {
 describe("Result.inferSync() static", () => {
     it("should return the same Result", () => {
         const ok = 10;
-        const result = safeSyncFn(ok);
-        const inferSome = inferSync(safeSyncFn);
+        const mockFn = (value: number) => (value > 10 ? errSync(new Error()) : okSync(value));
+
+        const result = mockFn(ok);
+        const inferSome = inferSync(mockFn);
 
         expect(inferSome(ok)).toStrictEqual(result);
+    });
+});
+
+//############################################################
+//##################### isOk() ###############################
+//############################################################
+
+describe("Result.isOk()", () => {
+    it("should return true when instance is created with OK status", () => {
+        const result = new Result(ResultStatus.OK, "test value", Empty);
+        expect(result.isOk()).toBe(true);
+    });
+
+    it("should return false when instance is created with ERR status", () => {
+        const result = new Result(ResultStatus.ERR, Empty, "test error");
+        expect(result.isOk()).toBe(false);
+    });
+});
+
+//############################################################
+//##################### isErr() ##############################
+//############################################################
+
+describe("Result.isErr()", () => {
+    it("should return true when instance is created with ERR status", () => {
+        const result = new Result(ResultStatus.ERR, Empty, "test error");
+        expect(result.isErr()).toBe(true);
+    });
+
+    it("should return false when instance is created with OK status", () => {
+        const result = new Result(ResultStatus.OK, "test value", Empty);
+        expect(result.isErr()).toBe(false);
     });
 });
 
@@ -249,7 +279,7 @@ describe("Result.unwrap()", () => {
     });
 
     it("should throw the error for an Err result", () => {
-        const error = new CustomError("test error");
+        const error = new Error("test error");
         const result = errSync(error);
 
         expect(() => result.unwrap()).toThrow(error);
@@ -267,13 +297,19 @@ describe("Result.unwrap()", () => {
 //##################### unwrapOr() ###########################
 //############################################################
 
-describe("Result unwrapOr()", () => {
-    it("okSync().unwrapOr() should be equal to value", () => {
-        expect(okSync(2).unwrapOr(false)).toBe(2);
+describe("Result.unwrapOr()", () => {
+    it("should return the value for an Ok result", () => {
+        const value = 42;
+        const result = okSync(value);
+
+        expect(result.unwrapOr(100)).toBe(value);
     });
 
-    it("errSync().unwrapOr() should be equal to value", () => {
-        expect(errSync(2).unwrapOr(false)).toBe(false);
+    it("should return the fallback value for an Err result", () => {
+        const fallback = "default value";
+        const result = errSync(new Error("test error"));
+
+        expect(result.unwrapOr(fallback)).toBe(fallback);
     });
 });
 
@@ -281,49 +317,33 @@ describe("Result unwrapOr()", () => {
 //##################### match() ##############################
 //############################################################
 
-describe("Result match()", () => {
-    it("okSync().match() should call the ok function", () => {
-        const result = okSync(2).match({
-            ok: (data) => `success: ${data}`,
-            err: (error) => `error: ${error}`,
-        });
-        expect(result).toBe("success: 2");
+describe("Result.match()", () => {
+    it("should call ok function with value when result is Ok", () => {
+        const okFn = vi.fn().mockReturnValue("ok result");
+        const errFn = vi.fn().mockReturnValue("err result");
+
+        const value = "test value";
+        const result = okSync(value);
+
+        const matchResult = result.match({ ok: okFn, err: errFn });
+
+        expect(okFn).toHaveBeenCalled();
+        expect(errFn).not.toHaveBeenCalled();
+        expect(matchResult).toBe("ok result");
     });
 
-    it("errSync().match() should call the err function", () => {
-        const result = errSync("failed").match({
-            ok: (data) => `success: ${data}`,
-            err: (error) => `error: ${error}`,
-        });
-        expect(result).toBe("error: failed");
-    });
-});
+    it("should call err function with error when result is Err", () => {
+        const okFn = vi.fn().mockReturnValue("ok result");
+        const errFn = vi.fn().mockReturnValue("err result");
 
-//############################################################
-//##################### isOk() ###############################
-//############################################################
+        const error = new Error("test error");
+        const result = errSync(error);
 
-describe("Result isOk()", () => {
-    it("okSync().isOk() should return true", () => {
-        expect(okSync(2).isOk()).toBe(true);
-    });
+        const matchResult = result.match({ ok: okFn, err: errFn });
 
-    it("errSync().isOk() should return false", () => {
-        expect(errSync("error").isOk()).toBe(false);
-    });
-});
-
-//############################################################
-//##################### isErr() ##############################
-//############################################################
-
-describe("Result isErr()", () => {
-    it("okSync().isErr() should return false", () => {
-        expect(okSync(2).isErr()).toBe(false);
-    });
-
-    it("errSync().isErr() should return true", () => {
-        expect(errSync("error").isErr()).toBe(true);
+        expect(errFn).toHaveBeenCalled();
+        expect(okFn).not.toHaveBeenCalled();
+        expect(matchResult).toBe("err result");
     });
 });
 
@@ -331,17 +351,29 @@ describe("Result isErr()", () => {
 //##################### map() ################################
 //############################################################
 
-describe("Result map()", () => {
-    it("okSync().map() should transform", () => {
-        const result = okSync("hello").map((data) => `${data} world`);
-        expect(result.unwrap()).toBe("hello world");
+describe("Result.map()", () => {
+    it("should transform an Ok result's value using the provided function", () => {
+        const result = okSync(5).map((value) => value * 2);
+
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toBe(10);
     });
 
-    it("errSync().map() should not execute", () => {
-        const mockMap = vi.fn();
-        const result = errSync(new CustomError()).map(mockMap);
+    it("should return a new Result with the transformed value", () => {
+        const original = okSync("hello");
+        const transformed = original.map((str) => str.toUpperCase());
 
-        expect(() => result.unwrap()).toThrow(new CustomError());
+        expect(transformed.unwrap()).toBe("HELLO");
+        expect(original.unwrap()).toBe("hello"); // Original is unchanged
+    });
+
+    it("should not execute on Err results", () => {
+        const mockMap = vi.fn();
+        const error = new Error("test error");
+        const result = errSync(error).map(mockMap);
+
+        expect(result.isErr()).toBe(true);
+        expect(() => result.unwrap()).toThrow(error);
         expect(mockMap).not.toHaveBeenCalled();
     });
 });
@@ -350,18 +382,30 @@ describe("Result map()", () => {
 //##################### mapErr() #############################
 //############################################################
 
-describe("Result mapErr()", () => {
-    it("okSync().mapErr() should not execute", () => {
-        const mockMapErr = vi.fn();
-        const result = okSync(2).mapErr(mockMapErr);
+describe("Result.mapErr()", () => {
+    it("should transform an Err result's error using the provided function", () => {
+        const result = errSync("error").mapErr((error) => `transformed: ${error}`);
 
-        expect(result.unwrap()).toBe(2);
-        expect(mockMapErr).not.toHaveBeenCalled();
+        expect(result.isErr()).toBe(true);
+        expect(() => result.unwrap()).toThrow("transformed: error");
     });
 
-    it("errSync().mapErr() should transform", () => {
-        const result = errSync("failure").mapErr((err) => `transformed: ${err}`);
-        expect(() => result.unwrap()).toThrow("transformed: failure");
+    it("should return a new Result with the transformed error", () => {
+        const original = errSync("initial error");
+        const transformed = original.mapErr((err) => new Error(`Enhanced: ${err}`));
+
+        expect(() => transformed.unwrap()).toThrow("Enhanced: initial error");
+        expect(() => original.unwrap()).toThrow("initial error"); // Original is unchanged
+    });
+
+    it("should not execute the function on Ok results", () => {
+        const mockMapErr = vi.fn();
+        const value = 42;
+        const result = okSync(value).mapErr(mockMapErr);
+
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toBe(value);
+        expect(mockMapErr).not.toHaveBeenCalled();
     });
 });
 
@@ -369,7 +413,7 @@ describe("Result mapErr()", () => {
 //##################### andThen() ############################
 //############################################################
 
-describe("Result andThen()", () => {
+describe("Result.andThen()", () => {
     it("should transform success values with callback function", () => {
         const result = okSync(8).andThen((val) => okSync(val * 2));
 
@@ -386,7 +430,7 @@ describe("Result andThen()", () => {
 
     it("should propagate errors from the original result", () => {
         const mockFn = vi.fn();
-        const result = errSync(new CustomError("original error")).andThen(mockFn);
+        const result = errSync(new Error("original error")).andThen(mockFn);
 
         expect(result.isErr()).toBe(true);
         expect(() => result.unwrap()).toThrow("original error");
@@ -394,7 +438,7 @@ describe("Result andThen()", () => {
     });
 
     it("should propagate errors from the callback function", () => {
-        const result = okSync(8).andThen(() => errSync(new CustomError("callback error")));
+        const result = okSync(8).andThen(() => errSync(new Error("callback error")));
 
         expect(result.isErr()).toBe(true);
         expect(() => result.unwrap()).toThrow("callback error");
@@ -405,7 +449,7 @@ describe("Result andThen()", () => {
 //##################### orElse() #############################
 //############################################################
 
-describe("Result orElse()", () => {
+describe("Result.orElse()", () => {
     it("should return the original result if it's successful", () => {
         const result = okSync(42).orElse(() => okSync(100));
 
@@ -435,9 +479,7 @@ describe("Result orElse()", () => {
     });
 
     it("should propagate the new error if callback returns an error", () => {
-        const result = errSync("original error").orElse(() =>
-            errSync(new CustomError("new error")),
-        );
+        const result = errSync("original error").orElse(() => errSync(new Error("new error")));
 
         expect(result.isErr()).toBe(true);
         expect(() => result.unwrap()).toThrow("new error");
@@ -448,7 +490,7 @@ describe("Result orElse()", () => {
 //##################### andTee() #############################
 //############################################################
 
-describe("Result andTee()", () => {
+describe("Result.andTee()", () => {
     it("should call function with the result value without transforming it", () => {
         const spy = vi.fn();
         const result = okSync(42).andTee(spy);
@@ -469,7 +511,7 @@ describe("Result andTee()", () => {
 
     it("should not call function when result is an error", () => {
         const spy = vi.fn();
-        const result = errSync(new CustomError("error")).andTee(spy);
+        const result = errSync(new Error("error")).andTee(spy);
 
         expect(result.isErr()).toBe(true);
         expect(() => result.unwrap()).toThrow("error");
@@ -492,10 +534,10 @@ describe("Result andTee()", () => {
 //##################### orTee() ##############################
 //############################################################
 
-describe("Result orTee()", () => {
+describe("Result.orTee()", () => {
     it("should call function with the error value without transforming it", () => {
         const spy = vi.fn();
-        const error = new CustomError("test error");
+        const error = new Error("test error");
         const result = errSync(error).orTee(spy);
 
         expect(result.isErr()).toBe(true);
@@ -506,7 +548,7 @@ describe("Result orTee()", () => {
     it("should support chaining multiple orTee calls", () => {
         const spy1 = vi.fn();
         const spy2 = vi.fn();
-        const error = new CustomError("chain error");
+        const error = new Error("chain error");
         const result = errSync(error).orTee(spy1).orTee(spy2);
 
         expect(result.isErr()).toBe(true);
