@@ -18,6 +18,6 @@ describe("ResultAsync", () => {
 
         expect(errResult).toBeInstanceOf(ResultAsync);
         expect(await errResult.isErr()).toBe(true);
-        expect(() => errResult.unwrap()).rejects.toThrow();
+        await expect(() => errResult.unwrap()).rejects.toThrow();
     });
 });
