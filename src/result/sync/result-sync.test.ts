@@ -23,214 +23,6 @@ describe("Result", () => {
 });
 
 //############################################################
-//##################### okSync() ##############################
-//############################################################
-describe("Result.okSync() static", () => {
-    it("should return a Result", () => {
-        const result = okSync(2);
-        const okResult = new Result(ResultStatus.OK, 2, Empty);
-
-        expect(result).toStrictEqual(okResult);
-    });
-
-    it("should create a Result with OK status", () => {
-        const result = okSync("test value");
-
-        expect(result.isOk()).toBe(true);
-        expect(result.isErr()).toBe(false);
-    });
-
-    it("should properly store the provided value", () => {
-        const testValue = { complex: "object", with: [1, 2, 3] };
-        const result = okSync(testValue);
-
-        expect(result.unwrap()).toBe(testValue);
-    });
-
-    it("should have Empty as error value", () => {
-        const result = okSync(42);
-
-        expect(result).toEqual(new Result(ResultStatus.OK, 42, Empty));
-    });
-
-    it("should handle different error types correctly", () => {
-        // Test with string
-        const string = "string";
-        const stringError = okSync(string);
-
-        expect(stringError.isOk()).toBe(true);
-        expect(stringError.unwrap()).toBe(string);
-
-        // Test with number
-        const number = 200;
-        const numberError = okSync(number);
-
-        expect(numberError.isOk()).toBe(true);
-        expect(numberError.ok).toBe(number);
-
-        // Test with boolean
-        const boolean = false;
-        const booleanError = okSync(boolean);
-
-        expect(booleanError.isOk()).toBe(true);
-        expect(booleanError.ok).toBe(boolean);
-
-        // Test with object
-        const object = { code: 200, message: "Success" };
-        const objectError = okSync(object);
-
-        expect(objectError.isOk()).toBe(true);
-        expect(objectError.ok).toStrictEqual(object);
-        expect(objectError.unwrap()).toStrictEqual(object);
-
-        // Test with array
-        const array = ["error1", "error2"];
-        const arrayError = okSync(array);
-
-        expect(arrayError.isOk()).toBe(true);
-        expect(arrayError.ok).toStrictEqual(array);
-
-        // Test with Ok instance
-
-        const okInstance = okSync(new Map());
-
-        expect(okInstance.isOk()).toBe(true);
-        expect(okInstance.unwrap()).instanceOf(Map);
-        expect(okInstance.unwrap()).toStrictEqual(new Map());
-    });
-});
-
-//############################################################
-//##################### errSync() ############################
-//############################################################
-
-describe("Result.errSync() static", () => {
-    it("should return a Result", () => {
-        const result = errSync(new Error());
-        const errResult = new Result(ResultStatus.ERR, Empty, new Error());
-
-        expect(result).toStrictEqual(errResult);
-    });
-
-    it("should create a Result with ERR status", () => {
-        const result = errSync("test error");
-        expect(result.isErr()).toBe(true);
-        expect(result.isOk()).toBe(false);
-    });
-
-    it("should properly store the provided error", () => {
-        const testError = new Error("complex error");
-        const result = errSync(testError);
-        expect(() => result.unwrap()).toThrow(testError);
-    });
-
-    it("should have Empty as value", () => {
-        const errorMessage = "some error";
-        const result = errSync(errorMessage);
-        expect(result).toEqual(new Result(ResultStatus.ERR, Empty, errorMessage));
-    });
-
-    it("should handle different error types correctly", () => {
-        // Test with string error
-        const string = "string error";
-        const stringError = errSync(string);
-
-        expect(stringError.isErr()).toBe(true);
-        expect(() => stringError.unwrap()).toThrow(string);
-
-        // Test with number error
-        const number = 404;
-        const numberError = errSync(number);
-
-        expect(numberError.isErr()).toBe(true);
-        expect(numberError.error).toBe(number);
-
-        // Test with boolean error
-        const boolean = false;
-        const booleanError = errSync(boolean);
-
-        expect(booleanError.isErr()).toBe(true);
-        expect(booleanError.error).toBe(boolean);
-
-        // Test with object error
-        const object = { code: 500, message: "Server error" };
-        const objectError = errSync(object);
-
-        expect(objectError.isErr()).toBe(true);
-        expect(objectError.error).toStrictEqual(object);
-        expect(() => objectError.unwrap()).toThrow(expect.objectContaining(object));
-
-        // Test with array error
-        const array = ["error1", "error2"];
-        const arrayError = errSync(array);
-
-        expect(arrayError.isErr()).toBe(true);
-        expect(arrayError.error).toStrictEqual(array);
-
-        // Test with Error instance
-        const classError = new Error("Error instance");
-        const errorInstance = errSync(classError);
-
-        expect(errorInstance.isErr()).toBe(true);
-        expect(() => errorInstance.unwrap()).toThrow(Error);
-        expect(() => errorInstance.unwrap()).toThrow(classError);
-    });
-});
-
-//############################################################
-//##################### safeTrySync() ########################
-//############################################################
-describe("Result.safeTrySync() static", () => {
-    it("should return Ok result with function return value when no error occurs", () => {
-        const value = 42;
-        const fn = () => value;
-
-        const result = safeTrySync(fn);
-
-        expect(result.isOk()).toBe(true);
-        expect(result.unwrap()).toBe(value);
-    });
-
-    it("should return Err result when function throws", () => {
-        const errorMessage = "Something went wrong";
-        const fn = () => {
-            throw new Error(errorMessage);
-        };
-
-        const result = safeTrySync(fn);
-
-        expect(result.isErr()).toBe(true);
-        expect(() => result.unwrap()).toThrow(errorMessage);
-    });
-
-    it("should work with functions that return complex objects", () => {
-        const complexObject = { prop1: "value1", prop2: [1, 2, 3], prop3: { nested: true } };
-        const fn = () => complexObject;
-
-        const result = safeTrySync(fn);
-
-        expect(result.isOk()).toBe(true);
-        expect(result.unwrap()).toEqual(complexObject);
-    });
-});
-
-//############################################################
-//##################### inferSync() ########################
-//############################################################
-
-describe("Result.inferSync() static", () => {
-    it("should return the same Result", () => {
-        const ok = 10;
-        const mockFn = (value: number) => (value > 10 ? errSync(new Error()) : okSync(value));
-
-        const result = mockFn(ok);
-        const inferSome = inferSync(mockFn);
-
-        expect(inferSome(ok)).toStrictEqual(result);
-    });
-});
-
-//############################################################
 //##################### isOk() ###############################
 //############################################################
 
@@ -412,6 +204,10 @@ describe("Result.mapErr()", () => {
     });
 });
 
+// ###########################################################
+// #################### STATIC METHODS #######################
+// ###########################################################
+
 //############################################################
 //##################### andThen() ############################
 //############################################################
@@ -577,5 +373,218 @@ describe("Result.orTee()", () => {
 
         expect(result.unwrap()).toBe("recovered");
         expect(spy).toHaveBeenCalledWith("initial error!");
+    });
+});
+
+//############################################################
+//##################### okSync() #############################
+//############################################################
+
+describe("Result.okSync() static", () => {
+    it("should return a Result", () => {
+        const result = okSync(2);
+        const okResult = new Result(ResultStatus.OK, 2, Empty);
+
+        expect(result).toStrictEqual(okResult);
+    });
+
+    it("should create a Result with OK status", () => {
+        const result = okSync("test value");
+
+        expect(result.isOk()).toBe(true);
+        expect(result.isErr()).toBe(false);
+    });
+
+    it("should properly store the provided value", () => {
+        const testValue = { complex: "object", with: [1, 2, 3] };
+        const result = okSync(testValue);
+
+        expect(result.unwrap()).toBe(testValue);
+    });
+
+    it("should have Empty as error value", () => {
+        const result = okSync(42);
+
+        expect(result).toEqual(new Result(ResultStatus.OK, 42, Empty));
+    });
+
+    it("should handle different types correctly", () => {
+        // Test with string
+        const string = "string";
+        const stringError = okSync(string);
+
+        expect(stringError.isOk()).toBe(true);
+        expect(stringError.unwrap()).toBe(string);
+
+        // Test with number
+        const number = 200;
+        const numberError = okSync(number);
+
+        expect(numberError.isOk()).toBe(true);
+        expect(numberError.ok).toBe(number);
+
+        // Test with boolean
+        const boolean = false;
+        const booleanError = okSync(boolean);
+
+        expect(booleanError.isOk()).toBe(true);
+        expect(booleanError.ok).toBe(boolean);
+
+        // Test with object
+        const object = { code: 200, message: "Success" };
+        const objectError = okSync(object);
+
+        expect(objectError.isOk()).toBe(true);
+        expect(objectError.ok).toStrictEqual(object);
+        expect(objectError.unwrap()).toStrictEqual(object);
+
+        // Test with array
+        const array = ["error1", "error2"];
+        const arrayError = okSync(array);
+
+        expect(arrayError.isOk()).toBe(true);
+        expect(arrayError.ok).toStrictEqual(array);
+
+        // Test with Ok instance
+
+        const okInstance = okSync(new Map());
+
+        expect(okInstance.isOk()).toBe(true);
+        expect(okInstance.unwrap()).instanceOf(Map);
+        expect(okInstance.unwrap()).toStrictEqual(new Map());
+    });
+});
+
+//############################################################
+//##################### errSync() ############################
+//############################################################
+
+describe("Result.errSync() static", () => {
+    it("should return a Result", () => {
+        const result = errSync(new Error());
+        const errResult = new Result(ResultStatus.ERR, Empty, new Error());
+
+        expect(result).toStrictEqual(errResult);
+    });
+
+    it("should create a Result with ERR status", () => {
+        const result = errSync("test error");
+        expect(result.isErr()).toBe(true);
+        expect(result.isOk()).toBe(false);
+    });
+
+    it("should properly store the provided error", () => {
+        const testError = new Error("complex error");
+        const result = errSync(testError);
+        expect(() => result.unwrap()).toThrow(testError);
+    });
+
+    it("should have Empty as value", () => {
+        const errorMessage = "some error";
+        const result = errSync(errorMessage);
+        expect(result).toEqual(new Result(ResultStatus.ERR, Empty, errorMessage));
+    });
+
+    it("should handle different types correctly", () => {
+        // Test with string error
+        const string = "string error";
+        const stringError = errSync(string);
+
+        expect(stringError.isErr()).toBe(true);
+        expect(() => stringError.unwrap()).toThrow(string);
+
+        // Test with number error
+        const number = 404;
+        const numberError = errSync(number);
+
+        expect(numberError.isErr()).toBe(true);
+        expect(numberError.error).toBe(number);
+
+        // Test with boolean error
+        const boolean = false;
+        const booleanError = errSync(boolean);
+
+        expect(booleanError.isErr()).toBe(true);
+        expect(booleanError.error).toBe(boolean);
+
+        // Test with object error
+        const object = { code: 500, message: "Server error" };
+        const objectError = errSync(object);
+
+        expect(objectError.isErr()).toBe(true);
+        expect(objectError.error).toStrictEqual(object);
+        expect(() => objectError.unwrap()).toThrow(expect.objectContaining(object));
+
+        // Test with array error
+        const array = ["error1", "error2"];
+        const arrayError = errSync(array);
+
+        expect(arrayError.isErr()).toBe(true);
+        expect(arrayError.error).toStrictEqual(array);
+
+        // Test with Error instance
+        const classError = new Error("Error instance");
+        const errorInstance = errSync(classError);
+
+        expect(errorInstance.isErr()).toBe(true);
+        expect(() => errorInstance.unwrap()).toThrow(Error);
+        expect(() => errorInstance.unwrap()).toThrow(classError);
+    });
+});
+
+//############################################################
+//##################### safeTrySync() ########################
+//############################################################
+
+describe("Result.safeTrySync()", () => {
+    it("should return Ok result with function success", () => {
+        const value = 42;
+        const fn = () => value;
+
+        const result = safeTrySync(fn);
+
+        expect(result.isOk()).toBe(true);
+        expect(result.unwrap()).toBe(value);
+    });
+
+    it("should return Err result when function throws", () => {
+        const errorMessage = "Something went wrong";
+        const fn = () => {
+            throw new Error(errorMessage);
+        };
+
+        const result = safeTrySync(fn);
+
+        expect(result.isErr()).toBe(true);
+        expect(() => result.unwrap()).toThrow(errorMessage);
+    });
+
+    it("should modify the error if `fnErr` is provided", () => {
+        const fn = () => {
+            throw new Error("Original error");
+        };
+
+        const message = "Custom error message";
+        const fnErr = () => new Error(message);
+
+        const result = safeTrySync(fn, fnErr);
+
+        expect(() => result.unwrap()).toThrowError(message);
+    });
+});
+
+//############################################################
+//##################### inferSync() ##########################
+//############################################################
+
+describe("Result.inferSync()", () => {
+    it("should return the same Result", () => {
+        const ok = 10;
+        const mockFn = (value: number) => (value > 10 ? errSync(new Error()) : okSync(value));
+        const inferFn = inferSync(mockFn);
+
+        const result = mockFn(ok);
+
+        expect(inferFn(ok)).toStrictEqual(result);
     });
 });
