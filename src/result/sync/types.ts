@@ -1,4 +1,4 @@
-import type { Result } from "./result.builder";
+import type { Result } from "./result-sync";
 
 export type InferOkTypes<R> = R extends Result<infer O, unknown> ? O : never;
 

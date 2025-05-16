@@ -1,31 +1,39 @@
 {
-	"name": "@rs-safe/result",
-	"version": "1.0.5",
-	"description": "A minimal port of Rust Result type in Typescript",
-	"author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
-	"keywords": ["rust", "errors", "typesafe"],
-	"license": "MIT",
-	"main": "dist/index.js",
-	"module": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"files": ["dist"],
-	"scripts": {
-		"tsc": "tsc",
-		"build": "tsc",
-		"test": "vitest --typecheck",
-		"prepublishOnly": "npm run build"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/oljimenez/result"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"jsdom": "^26.0.0",
-		"typescript": "^5.8.3",
-		"vitest": "^3.1.1"
-	},
-	"publishConfig": {
-		"access": "public"
-	}
+    "name": "@seguro/result",
+    "version": "1.0.5",
+    "description": "A minimal port of Rust Result type in Typescript",
+    "author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
+    "keywords": [
+        "rust",
+        "errors",
+        "typesafe"
+    ],
+    "license": "MIT",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "tsc": "tsc",
+        "build": "tsc",
+        "test": "vitest --typecheck",
+        "coverage": "vitest run --coverage",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/oljimenez/result"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^1.9.4",
+        "@vitest/coverage-v8": "3.1.1",
+        "jsdom": "^26.0.0",
+        "typescript": "^5.8.3",
+        "vitest": "^3.1.1"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
 }
