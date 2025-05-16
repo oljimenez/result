@@ -127,7 +127,6 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @param fn - The function to apply to the Ok value.
      * @returns A new ResultAsync with the chained result.
      */
-    //@ts-expect-error - The return type is not inferred correctly
     public andThen<TResult extends Result<unknown, unknown>>(
         fn: (t: O) => Promise<TResult>,
     ): ResultAsync<InferOkTypes<TResult>, InferErrTypes<TResult> | E>;
@@ -135,23 +134,25 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
         fn: (t: O) => TResult,
     ): ResultAsync<InferAsyncOkTypes<TResult>, InferAsyncErrTypes<TResult> | E>;
     public andThen<TOk, TErr>(fn: (t: O) => ResultAsync<TOk, TErr>): ResultAsync<TOk, E | TErr>;
-    public andThen(fn: (t: O) => ResultAsync<unknown, unknown>): ResultAsync<unknown, unknown> {
-        return new ResultAsync(
-            this._promise.then((res) => {
-                return res.match({
-                    ok: (ok) => {
-                        const newValue = fn(ok);
+    public andThen(
+        fn: (t: O) => ResultAsync<unknown, unknown> | Promise<Result<unknown, unknown>>,
+    ): ResultAsync<unknown, unknown> {
+        const promise = this._promise.then((res) =>
+            res.match({
+                ok: (ok) => {
+                    const newValue = fn(ok);
 
-                        if (newValue instanceof ResultAsync) {
-                            return newValue._promise;
-                        }
+                    if (newValue instanceof ResultAsync) {
+                        return newValue._promise;
+                    }
 
-                        return newValue;
-                    },
-                    err: async (error) => errSync(error),
-                });
+                    return newValue;
+                },
+                err: (error) => Promise.resolve(errSync(error)),
             }),
         );
+
+        return new ResultAsync(promise);
     }
 
     /**
@@ -164,7 +165,6 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @param fn - The function to apply to the Err value.
      * @returns A new ResultAsync with the chained result.
      */
-    //@ts-expect-error - The return type is not inferred correctly
     public orElse<TResult extends Result<unknown, unknown>>(
         fn: (t: E) => Promise<TResult>,
     ): ResultAsync<O | InferOkTypes<TResult>, InferErrTypes<TResult>>;
@@ -172,23 +172,25 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
         fn: (t: E) => TResult,
     ): ResultAsync<O | InferAsyncOkTypes<TResult>, InferAsyncErrTypes<TResult>>;
     public orElse<TOk, TErr>(fn: (t: E) => ResultAsync<TOk, TErr>): ResultAsync<O | TOk, TErr>;
-    public orElse(fn: (t: E) => ResultAsync<unknown, unknown>): ResultAsync<unknown, unknown> {
-        return new ResultAsync(
-            this._promise.then((res) => {
-                return res.match({
-                    ok: async (ok) => okSync(ok),
-                    err: (error) => {
-                        const errValue = fn(error);
+    public orElse(
+        fn: (t: E) => ResultAsync<unknown, unknown> | Promise<Result<unknown, unknown>>,
+    ): ResultAsync<unknown, unknown> {
+        const promise = this._promise.then((res) =>
+            res.match({
+                ok: (ok) => Promise.resolve(okSync(ok)),
+                err: (error) => {
+                    const errValue = fn(error);
 
-                        if (errValue instanceof ResultAsync) {
-                            return errValue._promise;
-                        }
+                    if (errValue instanceof ResultAsync) {
+                        return errValue._promise;
+                    }
 
-                        return errValue;
-                    },
-                });
+                    return errValue;
+                },
             }),
         );
+
+        return new ResultAsync(promise);
     }
 
     /**

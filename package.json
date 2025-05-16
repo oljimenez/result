@@ -1,14 +1,20 @@
 {
-    "name": "@rs-safe/result",
+    "name": "@seguro/result",
     "version": "1.0.5",
     "description": "A minimal port of Rust Result type in Typescript",
     "author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
-    "keywords": ["rust", "errors", "typesafe"],
+    "keywords": [
+        "rust",
+        "errors",
+        "typesafe"
+    ],
     "license": "MIT",
     "main": "dist/index.js",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
-    "files": ["dist"],
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "tsc": "tsc",
         "build": "tsc",
