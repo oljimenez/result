@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ResultStatus } from "../enums";
-import { Empty, Result, errSync, inferSync, okSync, safeTrySync } from "./result-sync";
+import { Result, errSync, inferSync, okSync, safeTrySync } from "./result-sync";
 
 //############################################################
 //##################### Result ###############################
@@ -8,13 +8,13 @@ import { Empty, Result, errSync, inferSync, okSync, safeTrySync } from "./result
 
 describe("Result", () => {
     it("constructor should properly set status, value and error", () => {
-        const okResult = new Result(ResultStatus.OK, "value", Empty);
+        const okResult = new Result({ status: ResultStatus.OK, ok: "value" });
 
         expect(okResult).instanceOf(Result);
         expect(okResult.isOk()).toBe(true);
         expect(okResult.unwrap()).toBe("value");
 
-        const errResult = new Result(ResultStatus.ERR, Empty, "error");
+        const errResult = new Result({ status: ResultStatus.ERR, error: "error" });
 
         expect(errResult).instanceOf(Result);
         expect(errResult.isErr()).toBe(true);
@@ -28,13 +28,11 @@ describe("Result", () => {
 
 describe("Result.isOk()", () => {
     it("should return true when instance is created with OK status", () => {
-        const result = new Result(ResultStatus.OK, "test value", Empty);
-        expect(result.isOk()).toBe(true);
+        expect(okSync("test value").isOk()).toBe(true);
     });
 
     it("should return false when instance is created with ERR status", () => {
-        const result = new Result(ResultStatus.ERR, Empty, "test error");
-        expect(result.isOk()).toBe(false);
+        expect(errSync("test error").isOk()).toBe(false);
     });
 });
 
@@ -44,13 +42,11 @@ describe("Result.isOk()", () => {
 
 describe("Result.isErr()", () => {
     it("should return true when instance is created with ERR status", () => {
-        const result = new Result(ResultStatus.ERR, Empty, "test error");
-        expect(result.isErr()).toBe(true);
+        expect(errSync("test error").isErr()).toBe(true);
     });
 
     it("should return false when instance is created with OK status", () => {
-        const result = new Result(ResultStatus.OK, "test value", Empty);
-        expect(result.isErr()).toBe(false);
+        expect(okSync("test value").isErr()).toBe(false);
     });
 });
 
@@ -383,7 +379,7 @@ describe("Result.orTee()", () => {
 describe("Result.okSync() static", () => {
     it("should return a Result", () => {
         const result = okSync(2);
-        const okResult = new Result(ResultStatus.OK, 2, Empty);
+        const okResult = new Result({ status: ResultStatus.OK, ok: 2 });
 
         expect(result).toStrictEqual(okResult);
     });
@@ -405,7 +401,7 @@ describe("Result.okSync() static", () => {
     it("should have Empty as error value", () => {
         const result = okSync(42);
 
-        expect(result).toEqual(new Result(ResultStatus.OK, 42, Empty));
+        expect(result).toEqual(new Result({ status: ResultStatus.OK, ok: 42 }));
     });
 
     it("should handle different types correctly", () => {
@@ -462,7 +458,7 @@ describe("Result.okSync() static", () => {
 describe("Result.errSync() static", () => {
     it("should return a Result", () => {
         const result = errSync(new Error());
-        const errResult = new Result(ResultStatus.ERR, Empty, new Error());
+        const errResult = new Result({ status: ResultStatus.ERR, error: new Error() });
 
         expect(result).toStrictEqual(errResult);
     });
@@ -482,7 +478,7 @@ describe("Result.errSync() static", () => {
     it("should have Empty as value", () => {
         const errorMessage = "some error";
         const result = errSync(errorMessage);
-        expect(result).toEqual(new Result(ResultStatus.ERR, Empty, errorMessage));
+        expect(result).toEqual(new Result({ status: ResultStatus.ERR, error: errorMessage }));
     });
 
     it("should handle different types correctly", () => {

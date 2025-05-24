@@ -1,10 +1,24 @@
-import { ResultStatus } from "../enums";
+import { ResultStatus, type ResultStatusUnion } from "../enums";
 import { ImposibleError, NoThrowAllowedError } from "../errors";
 import type { InferErrTypes, InferOkTypes } from "./types";
 
-export const Empty = Symbol("Empty");
+export const ResultEmpty = Symbol("ResultEmpty");
 
-export type Empty = typeof Empty;
+export type ResultEmpty = typeof ResultEmpty;
+
+interface ResultInputOk<O> {
+    status: ResultStatus["OK"];
+    ok: O;
+    error?: never;
+}
+
+interface ResultInputErr<E> {
+    status: ResultStatus["ERR"];
+    ok?: never;
+    error: E;
+}
+
+type ResultInput<O, E> = ResultInputOk<O> | ResultInputErr<E>;
 
 /**
  * @description
@@ -18,19 +32,19 @@ export class Result<O, E> {
      * @description
      * Indicates whether the result is successful.
      */
-    public readonly status: ResultStatus;
+    public readonly status: ResultStatusUnion;
 
     /**
      * @description
      * The successful value or Empty if the result is error.
      */
-    public readonly ok: O | Empty;
+    public readonly ok: O | ResultEmpty;
 
     /**
      * @description
      * The error value or Empty if the result is successful.
      */
-    public readonly error: E | Empty;
+    public readonly error: E | ResultEmpty;
 
     /**
      * @description
@@ -40,10 +54,10 @@ export class Result<O, E> {
      * @param value - The value of the successful result or Empty.
      * @param error - The error value or Empty.
      */
-    constructor(status: ResultStatus, ok: O | Empty, error: E | Empty) {
-        this.status = status;
-        this.ok = ok;
-        this.error = error;
+    constructor(args: ResultInput<O, E>) {
+        this.status = args.status;
+        this.ok = args.ok ?? ResultEmpty;
+        this.error = args.error ?? ResultEmpty;
     }
 
     /**
@@ -81,7 +95,11 @@ export class Result<O, E> {
      *
      * @returns True if the result is successful, false otherwise.
      */
-    public isOk(): boolean {
+    public isOk<TThis extends Result<unknown, unknown>>(
+        this: TThis,
+    ): this is Result<InferOkTypes<TThis>, never> & {
+        ok: InferOkTypes<TThis>;
+    } {
         return this.status === ResultStatus.OK;
     }
 
@@ -289,7 +307,7 @@ export class Result<O, E> {
      * @returns A successful Result instance.
      */
     static okSync<O, E = never>(okValue: O): Result<O, E> {
-        return new Result(ResultStatus.OK, okValue, Empty as E) as Result<O, E>;
+        return new Result({ status: ResultStatus.OK, ok: okValue });
     }
 
     /**
@@ -302,7 +320,7 @@ export class Result<O, E> {
      * @returns A failed Result instance.
      */
     static errSync<E, O = never>(errorValue: E): Result<O, E> {
-        return new Result(ResultStatus.ERR, Empty as O, errorValue) as Result<O, E>;
+        return new Result({ status: ResultStatus.ERR, error: errorValue });
     }
 
     /**

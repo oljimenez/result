@@ -3,4 +3,6 @@ export const ResultStatus = {
     ERR: "err",
 } as const;
 
-export type ResultStatus = (typeof ResultStatus)[keyof typeof ResultStatus];
+export type ResultStatus = typeof ResultStatus;
+
+export type ResultStatusUnion = ResultStatus[keyof ResultStatus];
