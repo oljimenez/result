@@ -1,4 +1,4 @@
-import { type Result, errSync, okSync } from "../sync/result-sync";
+import { type ResultSync, errSync, okSync } from "../sync/result-sync";
 import type { InferErrTypes, InferOkTypes } from "../sync/types";
 import type { InferAsyncErrTypes, InferAsyncOkTypes } from "./types";
 
@@ -10,13 +10,13 @@ import type { InferAsyncErrTypes, InferAsyncOkTypes } from "./types";
  * @template O - The type of the Ok value.
  * @template E - The type of the Err value.
  */
-export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
+export class ResultAsync<O, E> implements PromiseLike<ResultSync<O, E>> {
     /**
      * @param _promise - A promise that resolves to a Result.
      */
-    private readonly _promise: Promise<Result<O, E>>;
+    private readonly _promise: Promise<ResultSync<O, E>>;
 
-    constructor(_promise: Promise<Result<O, E>>) {
+    constructor(_promise: Promise<ResultSync<O, E>>) {
         this._promise = _promise;
     }
 
@@ -30,7 +30,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      */
     // biome-ignore lint/suspicious/noThenProperty: then need to be implemented on PromiseLike instances
     public then<ResultOk, ResultErr>(
-        okFn?: (response: Result<O, E>) => ResultOk | PromiseLike<ResultOk>,
+        okFn?: (response: ResultSync<O, E>) => ResultOk | PromiseLike<ResultOk>,
         errFn?: (reason: unknown) => ResultErr | PromiseLike<ResultErr>,
     ): PromiseLike<ResultOk | ResultErr> {
         return this._promise.then(okFn, errFn);
@@ -127,7 +127,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @param fn - The function to apply to the Ok value.
      * @returns A new ResultAsync with the chained result.
      */
-    public andThen<TResult extends Result<unknown, unknown>>(
+    public andThen<TResult extends ResultSync<unknown, unknown>>(
         fn: (t: O) => Promise<TResult>,
     ): ResultAsync<InferOkTypes<TResult>, InferErrTypes<TResult> | E>;
     public andThen<TResult extends ResultAsync<unknown, unknown>>(
@@ -135,7 +135,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
     ): ResultAsync<InferAsyncOkTypes<TResult>, InferAsyncErrTypes<TResult> | E>;
     public andThen<TOk, TErr>(fn: (t: O) => ResultAsync<TOk, TErr>): ResultAsync<TOk, E | TErr>;
     public andThen(
-        fn: (t: O) => ResultAsync<unknown, unknown> | Promise<Result<unknown, unknown>>,
+        fn: (t: O) => ResultAsync<unknown, unknown> | Promise<ResultSync<unknown, unknown>>,
     ): ResultAsync<unknown, unknown> {
         const promise = this._promise.then((res) =>
             res.match({
@@ -165,7 +165,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @param fn - The function to apply to the Err value.
      * @returns A new ResultAsync with the chained result.
      */
-    public orElse<TResult extends Result<unknown, unknown>>(
+    public orElse<TResult extends ResultSync<unknown, unknown>>(
         fn: (t: E) => Promise<TResult>,
     ): ResultAsync<O | InferOkTypes<TResult>, InferErrTypes<TResult>>;
     public orElse<TResult extends ResultAsync<unknown, unknown>>(
@@ -173,7 +173,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
     ): ResultAsync<O | InferAsyncOkTypes<TResult>, InferAsyncErrTypes<TResult>>;
     public orElse<TOk, TErr>(fn: (t: E) => ResultAsync<TOk, TErr>): ResultAsync<O | TOk, TErr>;
     public orElse(
-        fn: (t: E) => ResultAsync<unknown, unknown> | Promise<Result<unknown, unknown>>,
+        fn: (t: E) => ResultAsync<unknown, unknown> | Promise<ResultSync<unknown, unknown>>,
     ): ResultAsync<unknown, unknown> {
         const promise = this._promise.then((res) =>
             res.match({
@@ -234,7 +234,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @param result - The result instance you wanna convert to async result instance
      * @returns A ResultAsync instance with same Ok and Error values than the recieved Result
      */
-    public static toAsync<O, E>(result: Result<O, E>): ResultAsync<O, E> {
+    public static toAsync<O, E>(result: ResultSync<O, E>): ResultAsync<O, E> {
         return new ResultAsync(Promise.resolve(result));
     }
 
@@ -296,7 +296,7 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
     public static infer<TArgs extends any[], TResult extends ResultAsync<unknown, unknown>>(
         fn: (...args: TArgs) => TResult,
     ): (...args: TArgs) => ResultAsync<InferAsyncOkTypes<TResult>, InferAsyncErrTypes<TResult>>;
-    public static infer<TArgs extends any[], TResult extends Result<unknown, unknown>>(
+    public static infer<TArgs extends any[], TResult extends ResultSync<unknown, unknown>>(
         fn: (...args: TArgs) => Promise<TResult>,
     ): (...args: TArgs) => ResultAsync<InferOkTypes<TResult>, InferErrTypes<TResult>>;
     public static infer(fn: (...args: unknown[]) => unknown): typeof fn {

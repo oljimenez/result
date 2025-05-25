@@ -9,16 +9,30 @@ export type ResultEmpty = typeof ResultEmpty;
 interface ResultInputOk<O> {
     status: ResultStatus["OK"];
     ok: O;
-    error?: never;
+    err?: never;
 }
 
 interface ResultInputErr<E> {
     status: ResultStatus["ERR"];
     ok?: never;
-    error: E;
+    err: E;
 }
 
 type ResultInput<O, E> = ResultInputOk<O> | ResultInputErr<E>;
+
+export interface ResultOk<O, E> extends ResultSync<O, E> {
+    status: ResultStatus["OK"];
+    ok: O;
+    err: ResultEmpty;
+}
+
+export interface ResultErr<O, E> extends ResultSync<O, E> {
+    status: ResultStatus["ERR"];
+    ok: ResultEmpty;
+    err: E;
+}
+
+export type Result<O, E> = ResultOk<O, E> | ResultErr<O, E>;
 
 /**
  * @description
@@ -27,7 +41,7 @@ type ResultInput<O, E> = ResultInputOk<O> | ResultInputErr<E>;
  * @template O - The type of the successful result.
  * @template E - The type of the error result.
  */
-export class Result<O, E> {
+export class ResultSync<O, E> {
     /**
      * @description
      * Indicates whether the result is successful.
@@ -44,7 +58,7 @@ export class Result<O, E> {
      * @description
      * The error value or Empty if the result is successful.
      */
-    public readonly error: E | ResultEmpty;
+    public readonly err: E | ResultEmpty;
 
     /**
      * @description
@@ -57,7 +71,7 @@ export class Result<O, E> {
     constructor(args: ResultInput<O, E>) {
         this.status = args.status;
         this.ok = args.ok ?? ResultEmpty;
-        this.error = args.error ?? ResultEmpty;
+        this.err = args.err ?? ResultEmpty;
     }
 
     /**
@@ -71,7 +85,7 @@ export class Result<O, E> {
         if (this.isOk()) {
             throw new ImposibleError("error is empty");
         }
-        return this.error as E;
+        return this.err as E;
     }
 
     /**
@@ -95,11 +109,7 @@ export class Result<O, E> {
      *
      * @returns True if the result is successful, false otherwise.
      */
-    public isOk<TThis extends Result<unknown, unknown>>(
-        this: TThis,
-    ): this is Result<InferOkTypes<TThis>, never> & {
-        ok: InferOkTypes<TThis>;
-    } {
+    public isOk(): this is ResultOk<O, E> {
         return this.status === ResultStatus.OK;
     }
 
@@ -109,7 +119,7 @@ export class Result<O, E> {
      *
      * @returns True if the result is an error, false otherwise.
      */
-    public isErr(): boolean {
+    public isErr(): this is ResultErr<O, E> {
         return this.status === ResultStatus.ERR;
     }
 
@@ -146,14 +156,14 @@ export class Result<O, E> {
      * @description
      * Matches the result, executing a function based on whether it is successful or failed.
      *
-     * @template TResult - The type of the result of the match function.
+     * @template TReturn - The type of the result of the match function.
      * @param args - An object containing the functions to execute for the successful and failed cases.
      * @returns The result of the executed function.
      */
-    public match<TResult>(args: {
-        ok: (data: O) => TResult;
-        err: (error: E) => TResult;
-    }): TResult {
+    public match<TReturn>(args: {
+        ok: (data: O) => TReturn;
+        err: (error: E) => TReturn;
+    }): TReturn {
         if (this.isErr()) {
             return args.err(this.getErr());
         }
@@ -172,9 +182,9 @@ export class Result<O, E> {
      */
     public map<TOk>(fn: (data: O) => TOk): Result<TOk, E> {
         if (this.isErr()) {
-            return Result.errSync(this.getErr());
+            return ResultSync.errSync(this.getErr());
         }
-        return Result.okSync(fn(this.getOk()));
+        return ResultSync.okSync(fn(this.getOk()));
     }
 
     /**
@@ -189,10 +199,10 @@ export class Result<O, E> {
      */
     public mapErr<TErr>(fn: (err: E) => TErr): Result<O, TErr> {
         if (this.isErr()) {
-            return Result.errSync(fn(this.getErr()));
+            return ResultSync.errSync(fn(this.getErr()));
         }
 
-        return Result.okSync(this.getOk());
+        return ResultSync.okSync(this.getOk());
     }
 
     /**
@@ -212,7 +222,7 @@ export class Result<O, E> {
     public andThen<TOk, TErr>(fn: (t: O) => Result<TOk, TErr>): Result<TOk, E | TErr>;
     public andThen(fn: (t: O) => Result<unknown, unknown>): Result<unknown, unknown> {
         if (this.isErr()) {
-            return Result.errSync(this.getErr());
+            return ResultSync.errSync(this.getErr());
         }
         return fn(this.getOk());
     }
@@ -236,7 +246,7 @@ export class Result<O, E> {
         if (this.isErr()) {
             return fn(this.getErr());
         }
-        return Result.okSync(this.getOk());
+        return ResultSync.okSync(this.getOk());
     }
 
     /**
@@ -251,7 +261,7 @@ export class Result<O, E> {
      */
     public andTee(fn: (ok: O) => unknown): Result<O, E> {
         if (this.isErr()) {
-            return Result.errSync(this.getErr());
+            return ResultSync.errSync(this.getErr());
         }
 
         try {
@@ -263,7 +273,7 @@ export class Result<O, E> {
             );
         }
 
-        return Result.okSync(this.getOk());
+        return ResultSync.okSync(this.getOk());
     }
 
     /**
@@ -278,7 +288,7 @@ export class Result<O, E> {
      */
     public orTee(fn: (err: E) => unknown): Result<O, E> {
         if (this.isOk()) {
-            return Result.okSync(this.getOk());
+            return ResultSync.okSync(this.getOk());
         }
 
         try {
@@ -290,7 +300,7 @@ export class Result<O, E> {
             );
         }
 
-        return Result.errSync(this.getErr());
+        return ResultSync.errSync(this.getErr());
     }
 
     // ##################################################
@@ -306,8 +316,8 @@ export class Result<O, E> {
      * @param okValue - The value of the successful result.
      * @returns A successful Result instance.
      */
-    static okSync<O, E = never>(okValue: O): Result<O, E> {
-        return new Result({ status: ResultStatus.OK, ok: okValue });
+    static okSync<O>(okValue: O): Result<O, never> {
+        return new ResultSync({ status: ResultStatus.OK, ok: okValue }) as never;
     }
 
     /**
@@ -319,8 +329,8 @@ export class Result<O, E> {
      * @param errorValue - The error value.
      * @returns A failed Result instance.
      */
-    static errSync<E, O = never>(errorValue: E): Result<O, E> {
-        return new Result({ status: ResultStatus.ERR, error: errorValue });
+    static errSync<E>(errorValue: E): Result<never, E> {
+        return new ResultSync({ status: ResultStatus.ERR, err: errorValue }) as never;
     }
 
     /**
@@ -335,12 +345,12 @@ export class Result<O, E> {
      */
     static safeTrySync<O, E>(fn: () => O, fnErr?: (error: unknown) => E): Result<O, E> {
         try {
-            return Result.okSync<O, E>(fn());
+            return ResultSync.okSync<O>(fn());
         } catch (error) {
             if (fnErr) {
-                return Result.errSync<E, O>(fnErr(error));
+                return ResultSync.errSync<E>(fnErr(error));
             }
-            return Result.errSync<E, O>(error as E);
+            return ResultSync.errSync<E>(error as E);
         }
     }
 
@@ -361,7 +371,7 @@ export class Result<O, E> {
     }
 }
 
-export const okSync = Result.okSync;
-export const errSync = Result.errSync;
-export const safeTrySync = Result.safeTrySync;
-export const inferSync = Result.inferSync;
+export const okSync = ResultSync.okSync;
+export const errSync = ResultSync.errSync;
+export const safeTrySync = ResultSync.safeTrySync;
+export const inferSync = ResultSync.inferSync;
