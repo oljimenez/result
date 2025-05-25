@@ -344,15 +344,24 @@ export class ResultSync<O, E> {
      * @param fnErr - An optional function to map the error to a specific error type.
      * @returns A Result instance representing the outcome of the attempted function execution.
      */
-    static safeTrySync<O, E>(fn: () => O, fnErr?: (error: unknown) => E): Result<O, E> {
-        try {
-            return ResultSync.okSync<O>(fn());
-        } catch (error) {
-            if (fnErr) {
-                return ResultSync.errSync<E>(fnErr(error));
+    static safeTrySync<
+        TFn extends (...args: any[]) => unknown,
+        TFnErr extends (error: unknown) => unknown,
+    >(
+        fn: TFn,
+        fnErr?: TFnErr,
+    ): (...args: Parameters<TFn>) => Result<ReturnType<TFn>, ReturnType<TFnErr>> {
+        return (...args) => {
+            try {
+                const value = fn(...args);
+                return ResultSync.okSync(value as any);
+            } catch (error) {
+                if (fnErr) {
+                    return ResultSync.errSync(fnErr(error));
+                }
+                return ResultSync.errSync(error as any);
             }
-            return ResultSync.errSync<E>(error as E);
-        }
+        };
     }
 
     /**

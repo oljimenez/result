@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { err, infer, ok, ResultAsync, safeTry, toAsync } from "./result-async";
-import { okSync, errSync } from "../sync/result-sync";
+import { errSync, okSync } from "../sync/result-sync";
+import { ResultAsync, err, infer, ok, safeTry, toAsync } from "./result-async";
 
 //############################################################
 //##################### ResultAsync ##########################
@@ -192,7 +192,7 @@ describe("Result.safeTry()", () => {
 
         const result = safeTry(fn);
 
-        expect(await result.unwrap()).toBe(value);
+        expect(await result().unwrap()).toBe(value);
     });
 
     it("should return Err result when function throws", async () => {
@@ -201,7 +201,7 @@ describe("Result.safeTry()", () => {
 
         const result = safeTry(fn);
 
-        await expect(() => result.unwrap()).rejects.toThrow(message);
+        await expect(() => result().unwrap()).rejects.toThrow(message);
     });
 
     it("should modify the error if `fnErr` is provided", async () => {
@@ -212,7 +212,24 @@ describe("Result.safeTry()", () => {
 
         const result = safeTry(fn, fnErr);
 
-        await expect(() => result.unwrap()).rejects.toThrow(message);
+        await expect(() => result().unwrap()).rejects.toThrow(message);
+    });
+
+    it("should handle arguments", async () => {
+        const fn = (arg1: number) => Promise.resolve(arg1 + 5);
+
+        const result = safeTry(fn);
+
+        expect(await result(10).unwrap()).toBe(15);
+    });
+
+    it("should handle multiple arguments", async () => {
+        const fn = (arg1: number, arg2: number, arg3: number) =>
+            Promise.resolve(arg1 + arg2 + arg3);
+
+        const result = safeTry(fn);
+
+        expect(await result(10, 5, 5).unwrap()).toBe(20);
     });
 });
 

@@ -542,8 +542,8 @@ describe("Result.safeTrySync()", () => {
 
         const result = safeTrySync(fn);
 
-        expect(result.isOk()).toBe(true);
-        expect(result.unwrap()).toBe(value);
+        expect(result().isOk()).toBe(true);
+        expect(result().unwrap()).toBe(value);
     });
 
     it("should return Err result when function throws", () => {
@@ -554,8 +554,8 @@ describe("Result.safeTrySync()", () => {
 
         const result = safeTrySync(fn);
 
-        expect(result.isErr()).toBe(true);
-        expect(() => result.unwrap()).toThrow(errorMessage);
+        expect(result().isErr()).toBe(true);
+        expect(() => result().unwrap()).toThrow(errorMessage);
     });
 
     it("should modify the error if `fnErr` is provided", () => {
@@ -568,7 +568,23 @@ describe("Result.safeTrySync()", () => {
 
         const result = safeTrySync(fn, fnErr);
 
-        expect(() => result.unwrap()).toThrowError(message);
+        expect(() => result().unwrap()).toThrowError(message);
+    });
+
+    it("should handle arguments", () => {
+        const fn = (arg1: number) => arg1 + 5;
+
+        const result = safeTrySync(fn);
+
+        expect(result(10).unwrap()).toBe(15);
+    });
+
+    it("should handle multiple arguments", () => {
+        const fn = (arg1: number, arg2: number, arg3: number) => arg1 + arg2 + arg3;
+
+        const result = safeTrySync(fn);
+
+        expect(result(10, 5, 5).unwrap()).toBe(20);
     });
 });
 

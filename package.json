@@ -1,5 +1,5 @@
 {
-    "name": "@seguro/result",
+    "name": "@kanzen/result",
     "version": "1.0.5",
     "description": "A minimal port of Rust Result type in Typescript",
     "author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
