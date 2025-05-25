@@ -82,10 +82,11 @@ export class ResultSync<O, E> {
      * @throws If the error value is empty. (ImpossibleError)
      */
     private getErr(): E {
-        if (this.isOk()) {
+        if (!this.isErr()) {
             throw new ImposibleError("error is empty");
         }
-        return this.err as E;
+
+        return this.err;
     }
 
     /**
@@ -96,11 +97,11 @@ export class ResultSync<O, E> {
      * @throws If the value is empty. (ImpossibleError)
      */
     private getOk(): O {
-        if (this.isErr()) {
+        if (!this.isOk()) {
             throw new ImposibleError("value is empty");
         }
 
-        return this.ok as O;
+        return this.ok;
     }
 
     /**
