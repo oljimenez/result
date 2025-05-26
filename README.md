@@ -19,12 +19,14 @@ A minimal TypeScript implementation of Rust's Result type for elegant error hand
 - [TypeScript Integration](#typescript-integration)
 - [License](#license)
 
+<a name="introduction"></a>
 ## 🌟 Introduction
 
 `@kanzen/result` provides a robust alternative to traditional try/catch error handling in JavaScript and TypeScript. Inspired by Rust's Result type, it enables functional, type-safe error handling that makes your code more predictable and easier to reason about.
 
 With this library, errors become first-class citizens in your code rather than exceptional flow-breaking events, allowing for more elegant composition of functions that might fail.
 
+<a name="installation"></a>
 ## 📦 Installation
 
 ```bash
@@ -38,6 +40,7 @@ yarn add @kanzen/result
 pnpm add @kanzen/result
 ```
 
+<a name="key-features"></a>
 ## ✨ Key Features
 
 - **Type-safe error handling** - Leverage TypeScript to ensure errors are handled properly
@@ -46,6 +49,7 @@ pnpm add @kanzen/result
 - **Zero dependencies** - Lightweight and focused implementation
 - **Comprehensive TypeScript types** - Full type inference for both success and error values
 
+<a name="basic-usage"></a>
 ## 🚀 Basic Usage
 
 ### Synchronous Example
@@ -121,8 +125,10 @@ fetchUser('123')
   });
 ```
 
+<a name="api-reference"></a>
 ## 📘 API Reference
 
+<a name="synchronous-api"></a>
 ### Synchronous API
 
 #### Creating Results
@@ -145,6 +151,7 @@ fetchUser('123')
 - **`andTee(fn: (value: T) => unknown): Result<T, E>`** - Performs a side effect on success (tee/tap pattern)
 - **`orTee(fn: (error: E) => unknown): Result<T, E>`** - Performs a side effect on error
 
+<a name="asynchronous-api"></a>
 ### Asynchronous API
 
 #### Creating Async Results
@@ -170,8 +177,10 @@ ResultAsync implements all the methods from Result but returns promises or new R
 - **`andTee(fn: (value: T) => unknown): ResultAsync<T, E>`**
 - **`orTee(fn: (error: E) => unknown): ResultAsync<T, E>`**
 
+<a name="advanced-examples"></a>
 ## 🔍 Advanced Examples
 
+<a name="migration-from-trycatch"></a>
 ## 🔄 Migration from try/catch
 
 ### Before
@@ -224,6 +233,7 @@ safeDivideNumbers(10, 2).match({
 });
 ```
 
+<a name="typescript-integration"></a>
 ## 🧩 TypeScript Integration
 
 The library provides full TypeScript support with strong type inference:
@@ -255,6 +265,7 @@ const transformed = divide(10, 2)
   .mapErr(error => new Error(`transform: ${error.message}`)); // Result<string, TypeError>
 ```
 
+<a name="license"></a>
 ## 📜 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
