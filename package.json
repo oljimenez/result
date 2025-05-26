@@ -1,6 +1,6 @@
 {
     "name": "@kanzen/result",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "A minimal port of Rust Result type in Typescript",
     "author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
     "keywords": [
@@ -20,8 +20,8 @@
         "build": "tsc",
         "test": "vitest --typecheck",
         "coverage": "vitest run --coverage",
-        "prepublishOnly": "npm run build",
-        "publish": "npm publish --access public"
+        "pub": "npm publish --access public",
+        "prepublishOnly": "npm run build"
     },
     "repository": {
         "type": "git",
