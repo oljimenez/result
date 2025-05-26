@@ -338,8 +338,6 @@ export class ResultSync<O, E> {
      * @description
      * Attempts to execute a side effect function and captures any thrown errors as a failed result.
      *
-     * @template O - The type of the successful result value.
-     * @template E - The type of the error value.
      * @param fn - The side effect function to execute.
      * @param fnErr - An optional function to map the error to a specific error type.
      * @returns A Result instance representing the outcome of the attempted function execution.

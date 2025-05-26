@@ -1,21 +1,23 @@
-import { type Result, r } from "./result";
+import { safeTrySync } from "./result";
 
-class CustomError extends Error {
-    name = "CustomError" as const;
-}
-
-class CustomError2 extends Error {
-    name = "CustomError2" as const;
-}
-
-function hello(value: number): Result<null, CustomError | CustomError2> {
-    if (value > 10) {
-        return r.errSync(new CustomError("Value must be lower than 10"));
+// Declare a unsafe function
+function divideNumbers(a: number, b: number): number {
+    if (b === 0) {
+        throw new Error("Division by zero");
     }
-
-    if (value > 20) {
-        return r.errSync(new CustomError2("Value must be lower than 10"));
-    }
-
-    return r.okSync(null);
+    return a / b;
 }
+
+// Make it safe function
+const safeDivideNumbers = safeTrySync(
+    divideNumbers,
+    (error) => new Error(`Division error: ${String(error)}`),
+);
+
+// Usage:
+safeDivideNumbers(10, 2).match({
+    ok: (result) => console.log(`Result: ${result}`),
+    err: (error) => console.log(`An error occurred: ${error.message}`),
+});
+
+new TypeError();
