@@ -14,9 +14,7 @@ A minimal TypeScript implementation of Rust's Result type for elegant error hand
 - [API Reference](#api-reference)
   - [Synchronous API](#synchronous-api)
   - [Asynchronous API](#asynchronous-api)
-- [Advanced Examples](#advanced-examples)
 - [Migration from try/catch](#migration-from-trycatch)
-- [TypeScript Integration](#typescript-integration)
 - [License](#license)
 
 <a name="introduction"></a>
@@ -77,7 +75,6 @@ function divideBy (a: number, b: number): number {
   if (b === 0) {
       throw new Error('Division by zero')
   };
-
   return a / b;
 };
 
@@ -230,38 +227,6 @@ safeDivideNumbers(10, 2).match({
     ok: (result) => console.log(`Result: ${result}`),
     err: (error) => console.log(`An error occurred: ${error.message}`),
 });
-```
-
-<a name="typescript-integration"></a>
-## 🧩 TypeScript Integration
-
-The library provides full TypeScript support with strong type inference:
-
-```typescript
-import { okSync, errSync, type Result } from '@kanzen/result';
-
-// Function return types
-function divide(a: number, b: number): Result<number, Error> {
-  if (b === 0) {
-      return errSync(new Error("Can't divide by zero"));
-  }
-  return okSync(a / b);
-}
-
-// Type narrowing with isOk and isErr
-const result = divide(10, 2);
-if (result.isOk()) {
-  // TypeScript knows result.ok is a number here
-  const value = result.ok; // number
-} else {
-  // TypeScript knows result.err is an Error here
-  const error = result.err; // Error
-}
-
-// Generic type parameters are preserved through transformations
-const transformed = divide(10, 2)
-  .map((value) => value.toString()) // Result<string, Error>
-  .mapErr(error => new Error(`transform: ${error.message}`)); // Result<string, TypeError>
 ```
 
 <a name="license"></a>
