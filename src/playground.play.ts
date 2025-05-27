@@ -19,5 +19,3 @@ safeDivideNumbers(10, 2).match({
     ok: (result) => console.log(`Result: ${result}`),
     err: (error) => console.log(`An error occurred: ${error.message}`),
 });
-
-new TypeError();

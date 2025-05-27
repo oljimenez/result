@@ -1,6 +1,6 @@
 {
     "name": "@kanzen/result",
-    "version": "1.0.8",
+    "version": "1.0.10",
     "description": "A minimal port of Rust Result type in Typescript",
     "author": "Oscar Luis Jimenez Gonzalez <https://github.com/oljimenez>",
     "keywords": [

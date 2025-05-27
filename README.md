@@ -73,17 +73,17 @@ const message = failure.match({
 console.log(message); // 'Error: Something went wrong'
 
 // Safely try an operation that might throw
-function divideBy(a: number, b: number) {
-  return safeTrySync(
-    () => {
-      if (b === 0) throw new Error('Division by zero');
-      return a / b;
-    },
-    (error) => new Error(`Math error: ${error instanceof Error ? error.message : String(error)}`)
-  );
+function divideBy (a: number, b: number): number {
+  if (b === 0) {
+      throw new Error('Division by zero')
+  };
+
+  return a / b;
 };
 
-const result = divideBy(10, 2)
+const safeDivideBy = safeTrySync(divideBy);
+
+const result = safeDivideBy(10, 2)
   .map(result => result * 2)
   .andTee(result => console.log(`Result: ${result}`))
   .unwrapOr(0);
@@ -96,20 +96,19 @@ console.log(result); // 10
 ```typescript
 import { ok, err, safeTry } from '@kanzen/result';
 
-// Fetch API with Result
-const fetchUser = safeTry(
-  async (id: string) => {
+async function fetchUser(id: string): Promise<unknown> {
     const response = await fetch(`https://api.example.com/users/${id}`);
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
     }
     return await response.json();
-  },
-  (error) => new Error(`Failed to fetch user: ${error instanceof Error ? error.message : String(error)}`)
-)
+}
+
+// Fetch API with Result
+const safeFetchUser = safeTry(fetchUser)
 
 // Use the result
-fetchUser('123')
+const value = await safeFetchUser('123')
   .andThen((user) => {
     // Only runs if fetchUser succeeded
     return ok({ ...user, lastLogin: new Date() });
