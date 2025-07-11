@@ -264,19 +264,17 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
      * @description
      * Attempts to execute an asynchronous function, capturing any errors as a ResultAsync.
      *
-     * @param fn - The asynchronous function to execute.
-     * @param fnErr - An optional function to transform the error.
+     * @param Ok - the Ok value
+     * @param Err - The Err value.
+     * @param OkArgs - An array of arguments of the main function
      * @returns A ResultAsync representing the result of the function.
      */
-    public static safeTry<
-        TFn extends (...args: any[]) => Promise<any>,
-        TFnErr extends (error: unknown) => unknown,
-    >(
-        fn: TFn,
-        fnErr?: TFnErr,
-    ): (...args: Parameters<TFn>) => ResultAsync<Awaited<ReturnType<TFn>>, ReturnType<TFnErr>> {
-        return (...args) => {
-            return new ResultAsync(
+    public static safeTry<Ok, Err, OkArgs extends any[]>(
+        fn: (...args: OkArgs) => Promise<Ok>,
+        fnErr?: (error: unknown) => Err,
+    ): (...args: OkArgs) => ResultAsync<Ok, Err> {
+        return (...args) =>
+            new ResultAsync(
                 fn(...args)
                     .then((res) => okSync(res))
                     .catch((error) => {
@@ -286,7 +284,6 @@ export class ResultAsync<O, E> implements PromiseLike<Result<O, E>> {
                         return errSync(error);
                     }),
             );
-        };
     }
 
     /**

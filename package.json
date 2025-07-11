@@ -9,6 +9,7 @@
         "typesafe"
     ],
     "license": "MIT",
+    "type": "module",
     "main": "dist/index.js",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -16,8 +17,8 @@
         "dist"
     ],
     "scripts": {
-        "tsc": "tsc",
         "build": "tsc",
+        "check-types": "tsc",
         "test": "vitest --typecheck",
         "coverage": "vitest run --coverage",
         "pub": "npm publish --access public",
@@ -28,11 +29,10 @@
         "url": "git+https://github.com/oljimenez/result.git"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
-        "@vitest/coverage-v8": "3.1.1",
+        "@vitest/coverage-v8": "3.1.4",
         "jsdom": "^26.0.0",
         "typescript": "^5.8.3",
-        "vitest": "^3.1.1"
+        "vitest": "^3.1.4"
     },
     "publishConfig": {
         "access": "public"

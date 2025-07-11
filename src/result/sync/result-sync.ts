@@ -338,26 +338,24 @@ export class ResultSync<O, E> {
      * @description
      * Attempts to execute a side effect function and captures any thrown errors as a failed result.
      *
-     * @param fn - The side effect function to execute.
-     * @param fnErr - An optional function to map the error to a specific error type.
+     * @param Ok - the Ok value
+     * @param Err - The Err value.
+     * @param OkArgs - An array of arguments of the main function
      * @returns A Result instance representing the outcome of the attempted function execution.
      */
-    static safeTrySync<
-        TFn extends (...args: any[]) => unknown,
-        TFnErr extends (error: unknown) => unknown,
-    >(
-        fn: TFn,
-        fnErr?: TFnErr,
-    ): (...args: Parameters<TFn>) => Result<ReturnType<TFn>, ReturnType<TFnErr>> {
+    static safeTrySync<O, E, OArgs extends any[]>(
+        fn: (...args: OArgs) => O,
+        fnErr?: (error: unknown) => E,
+    ): (...args: OArgs) => Result<O, E> {
         return (...args) => {
             try {
                 const value = fn(...args);
-                return ResultSync.okSync(value as any);
+                return ResultSync.okSync(value);
             } catch (error) {
                 if (fnErr) {
                     return ResultSync.errSync(fnErr(error));
                 }
-                return ResultSync.errSync(error as any);
+                return ResultSync.errSync(error as E);
             }
         };
     }
